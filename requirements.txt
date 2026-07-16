@@ -9,8 +9,6 @@ joblib==1.4.2
 sqlite3
 
 
-TMDB_API_KEY = os.getenv("57a0d7db7351a1ca01041c569738bd73", "")
-OMDB_API_KEY = os.getenv("68a405fb", "")
 
 I have completed my YentiFlix project setup.
 Current structure:

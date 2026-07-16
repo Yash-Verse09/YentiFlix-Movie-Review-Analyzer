@@ -86,7 +86,7 @@ Visualizes sentiment distribution and positive vs negative review ratio.
 
 > **YentiFlix** is a production-ready AI-powered web application built with **Flask** and **Machine Learning** that predicts the sentiment of movie reviews (Positive / Negative) and enriches results with real movie data fetched from **TMDb** and **OMDb** APIs — all presented inside a premium, responsive **Netflix-inspired dashboard**.
 
-This project demonstrates the complete ML pipeline from raw text preprocessing to a deployed web application, making it a strong portfolio project that showcases skills in **NLP**, **Machine Learning**, **REST API integration**, **Flask development**, and **modern frontend design**.
+This project demonstrates the complete ML pipeline from raw text preprocessing to a deployed web application, making it a strong portfolio project that showcases skills in **NLP**, **Machine Learning**, **API integration**, **Flask development**, and **modern frontend design**.
 
 ---
 

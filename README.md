@@ -30,18 +30,38 @@
 
 ## 📸 Screenshots
 
-| Homepage | Prediction Result |
-|:---:|:---:|
-| ![Homepage](static/images/screenshots/homepage.png) | ![Result](static/images/screenshots/result.png) |
+### 🏠 Homepage
+The landing page where users enter a movie name, rating, and review.
 
-| Sentiment Analysis | Movie Details |
-|:---:|:---:|
-| ![Sentiment](static/images/screenshots/sentiment.png) | ![Movie](static/images/screenshots/movie_details.png) |
+![Homepage](Screenshots/homepage.png)
 
-| Review Database |
-|:---:|
-| ![Database](static/images/screenshots/database.png) |
+---
 
+### ✍️ Movie Review Input
+Review submission form with movie title, user rating, and review text.
+
+![Movie Review](Screenshots/movie_review.png)
+
+---
+
+### 🎬 Movie Details
+Displays movie poster, release date, genres, cast, runtime, director, trailer, and other metadata.
+
+![Movie Details](Screenshots/movie_details.png)
+
+---
+
+### 😊 Sentiment Analysis Result
+Shows the predicted sentiment, confidence score, and review summary.
+
+![Sentiment Result](Screenshots/sentiment.png)
+
+---
+
+### 📊 Analytics Charts
+Visualizes sentiment distribution and positive vs negative review ratio.
+
+![Charts](Screenshots/charts.png)
 ---
 
 ## 📋 Table of Contents

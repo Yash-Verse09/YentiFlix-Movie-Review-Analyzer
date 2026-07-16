@@ -1,0 +1,484 @@
+{% extends "base.html" %}
+{% block title %}Home — YentiFlix{% endblock %}
+
+{% block extra_head %}
+<style>
+  .index-page { max-width:1100px; margin:0 auto; display:flex; flex-direction:column; gap:5.5rem; }
+
+  /* ── 1. Hero Section ── */
+  .hero { display:flex; flex-direction:column; align-items:center; text-align:center; padding:4rem 1rem 1.5rem; gap:1.5rem; }
+  .hero__badge { display:inline-flex; align-items:center; gap:0.5rem; font-size:0.72rem; font-weight:600; letter-spacing:1.6px; text-transform:uppercase; color:var(--red); background:rgba(229,9,20,0.08); border:1px solid rgba(229,9,20,0.28); padding:0.38rem 1rem; border-radius:99px; animation:fadeDown 0.5s ease both; }
+  .hero__heading { font-size:clamp(2.2rem,6vw,4rem); font-weight:800; line-height:1.15; color:#f2f2f2; max-width:900px; letter-spacing:-1px; animation:fadeDown 0.55s 0.08s ease both; }
+  .hero__heading .accent { background:linear-gradient(135deg,var(--red),#ff6b6b); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+  .hero__sub { font-size:1.1rem; color:var(--text-2); max-width:720px; line-height:1.7; animation:fadeDown 0.55s 0.16s ease both; }
+  .hero__cta { margin-top:1rem; display:inline-flex; align-items:center; gap:0.65rem; padding:0.95rem 2.2rem; font-family:var(--font); font-size:0.95rem; font-weight:700; color:#fff; background:linear-gradient(135deg,var(--red),#c1060e); border:none; border-radius:12px; cursor:pointer; box-shadow:0 4px 22px rgba(229,9,20,0.38); transition:transform 0.25s,box-shadow 0.25s,filter 0.25s; animation:fadeDown 0.55s 0.24s ease both; }
+  .hero__cta:hover { transform:translateY(-2px); box-shadow:0 8px 34px rgba(229,9,20,0.52); filter:brightness(1.07); }
+  @keyframes fadeDown { from{opacity:0;transform:translateY(-16px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── 2. How It Works ── */
+  .how-section { display:flex; flex-direction:column; gap:2.5rem; }
+  .section-head { text-align:center; display:flex; flex-direction:column; gap:0.5rem; }
+  .section-head h2 { font-size:clamp(1.6rem,4vw,2.2rem); font-weight:700; color:#f2f2f2; letter-spacing:-0.5px; }
+  .section-head p  { font-size:0.95rem; color:#808080; }
+  .steps-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.5rem; }
+  .step-card  { background:rgba(22,22,22,0.68); border:1px solid rgba(255,255,255,0.08); border-radius:22px; padding:2.25rem 1.75rem; display:flex; flex-direction:column; align-items:flex-start; text-align:left; gap:1rem; backdrop-filter:blur(20px); box-shadow:0 4px 30px rgba(0,0,0,0.4); transition:border-color 0.3s,transform 0.3s,box-shadow 0.3s; }
+  .step-card:hover { border-color:rgba(229,9,20,0.3); transform:translateY(-5px); box-shadow:0 10px 40px rgba(0,0,0,0.6); }
+  .step-header { display:flex; align-items:center; justify-content:space-between; width:100%; }
+  .step-num  { width:42px; height:42px; border-radius:50%; background:rgba(229,9,20,0.1); border:1px solid rgba(229,9,20,0.3); display:flex; align-items:center; justify-content:center; font-size:1.1rem; font-weight:700; color:var(--red); }
+  .step-card i { font-size:2.2rem; color:#404040; transition:color 0.3s,transform 0.3s; }
+  .step-card:hover i { color:var(--red); transform:scale(1.05); }
+  .step-card h3 { font-size:1.15rem; font-weight:600; color:#f2f2f2; margin-top:0.25rem; }
+  .step-card p  { font-size:0.88rem; color:#959595; line-height:1.65; }
+
+  /* ── 3. Form Card ── */
+  .form-section { display:flex; justify-content:center; }
+  .form-card {
+    width:100%; max-width:850px;
+    background:rgba(22,22,22,0.78);
+    border:1px solid rgba(255,255,255,0.09);
+    border-radius:24px;
+    padding:3rem clamp(1.5rem,5vw,3rem);
+    backdrop-filter:blur(20px);
+    box-shadow:0 4px 40px rgba(0,0,0,0.5);
+    transition:box-shadow 0.35s,transform 0.35s;
+  }
+  .form-card:hover { transform:translateY(-2px); box-shadow:0 12px 60px rgba(0,0,0,0.65),0 0 0 1px rgba(229,9,20,0.12) inset; }
+  .form-card__header { display:flex; align-items:center; gap:0.9rem; margin-bottom:2.5rem; }
+  .form-card__icon   { width:48px; height:48px; background:rgba(229,9,20,0.1); border:1px solid rgba(229,9,20,0.25); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.25rem; color:var(--red); flex-shrink:0; }
+  .form-card__title  { font-size:1.35rem; font-weight:700; color:#f2f2f2; letter-spacing:-0.3px; }
+  .form-card__title span { display:block; font-size:0.85rem; font-weight:400; color:#808080; margin-top:0.15rem; }
+
+  .field-group { display:flex; flex-direction:column; gap:1.5rem; }
+  .field-row { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; }
+  .field       { display:flex; flex-direction:column; gap:0.55rem; }
+  .field label { font-size:0.75rem; font-weight:600; color:#a0a0a0; letter-spacing:0.7px; text-transform:uppercase; display:flex; align-items:center; gap:0.45rem; }
+  .field label i { color:var(--red); font-size:0.72rem; }
+
+  .field input, .field textarea, .field select {
+    width:100%; background:#161616; color:#f2f2f2;
+    font-family:var(--font); font-size:0.95rem;
+    border:1px solid rgba(255,255,255,0.08); border-radius:12px;
+    padding:0.9rem 1.15rem; outline:none;
+    transition:border-color 0.25s,box-shadow 0.25s,background 0.25s;
+    resize:none;
+  }
+  .field input::placeholder, .field textarea::placeholder { color:#4a4a4a; }
+  .field input:hover, .field textarea:hover, .field select:hover { background:#1e1e1e; border-color:rgba(255,255,255,0.14); }
+  .field input:focus, .field textarea:focus, .field select:focus { background:#1e1e1e; border-color:var(--red); box-shadow:0 0 0 3px rgba(229,9,20,0.15); }
+  .field input.input-error, .field textarea.input-error { border-color:var(--red); box-shadow:0 0 0 3px rgba(229,9,20,0.2); }
+  .field-error-msg { font-size:0.78rem; color:#ff6b6b; display:flex; align-items:center; gap:0.3rem; margin-top:0.1rem; }
+  .field textarea { height:160px; line-height:1.7; }
+
+  /* Premium Custom Dropdown Wrapper for Mood selector */
+  .select-wrapper { position:relative; display:flex; align-items:center; }
+  .select-wrapper select { appearance:none; -webkit-appearance:none; padding-right:2.5rem; cursor:pointer; }
+  .select-wrapper::after { content:'\f078'; font-family:'Font Awesome 6 Free'; font-weight:900; position:absolute; right:1.15rem; font-size:0.8rem; color:#808080; pointer-events:none; }
+
+  /* Star Rating Component */
+  .star-rating-wrap { display:flex; flex-direction:column; gap:0.55rem; background:#161616; border:1px solid rgba(255,255,255,0.08); padding:0.9rem 1.25rem; border-radius:12px; }
+  .star-rating-wrap label.field-label { font-size:0.75rem; font-weight:600; color:#a0a0a0; letter-spacing:0.7px; text-transform:uppercase; display:flex; align-items:center; gap:0.45rem; }
+  .star-row { display:flex; align-items:center; gap:1.25rem; flex-wrap:wrap; margin-top:0.15rem; }
+  .stars { display:flex; flex-direction:row-reverse; gap:0.35rem; }
+  .stars input[type=radio] { display:none; }
+  .stars label { font-size:1.65rem; cursor:pointer; color:#2d2d2d; transition:color 0.15s, transform 0.15s; line-height:1; }
+  .stars label:hover, .stars label:hover ~ label, .stars input:checked ~ label { color:#f5c842; }
+  .stars label:hover { transform:scale(1.18); }
+  .rating-display { font-size:0.88rem; font-weight:600; color:#f2f2f2; min-width:60px; background:rgba(255,255,255,0.04); padding:0.25rem 0.65rem; border-radius:6px; text-align:center; }
+  #ratingHidden { display:none; }
+  .char-counter { align-self:flex-end; font-size:0.74rem; color:#505050; transition:color 0.2s; margin-top:0.25rem; }
+  .char-counter.warn { color:var(--amber); }
+
+  /* Submit Button styling */
+  .btn-analyze {
+    width:100%; display:flex; align-items:center; justify-content:center;
+    gap:0.75rem; margin-top:0.75rem; padding:1.1rem 2rem;
+    font-family:var(--font); font-size:1rem; font-weight:700;
+    color:#fff; background:linear-gradient(135deg,var(--red),#c1060e);
+    border:none; border-radius:12px; cursor:pointer;
+    box-shadow:0 4px 22px rgba(229,9,20,0.38);
+    transition:transform 0.25s,box-shadow 0.25s,filter 0.25s;
+    position:relative; overflow:hidden;
+  }
+  .btn-analyze::before { content:''; position:absolute; top:0; left:-100%; width:60%; height:100%; background:linear-gradient(105deg,transparent,rgba(255,255,255,0.18),transparent); transition:left 0.5s ease; }
+  .btn-analyze:hover   { transform:translateY(-2px); box-shadow:0 8px 34px rgba(229,9,20,0.52); filter:brightness(1.07); }
+  .btn-analyze:hover::before { left:160%; }
+  .btn-analyze:active  { transform:translateY(0); }
+  .btn-analyze:disabled{ opacity:0.65; cursor:not-allowed; transform:none !important; }
+  .spinner { display:none; width:18px; height:18px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+
+  /* ── 4. Why Choose YentiFlix ── */
+  .features-section { display:flex; flex-direction:column; gap:2.5rem; }
+  .features-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:1.5rem; }
+  .feature-card { background:rgba(15,15,15,0.75); border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:2rem; display:flex; gap:1.25rem; align-items:flex-start; box-shadow:0 4px 25px rgba(0,0,0,0.3); transition:border-color 0.25s, transform 0.25s; }
+  .feature-card:hover { border-color:rgba(255,255,255,0.15); transform:translateY(-3px); }
+  .feature-icon { width:46px; height:46px; border-radius:10px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:1.15rem; color:var(--red); flex-shrink:0; }
+  .feature-card:hover .feature-icon { background:var(--red-tint); border-color:var(--red-border); }
+  .feature-info { display:flex; flex-direction:column; gap:0.35rem; }
+  .feature-info h3 { font-size:1.05rem; font-weight:600; color:#f2f2f2; }
+  .feature-info p { font-size:0.88rem; color:#8a8a8a; line-height:1.6; }
+
+  /* ── 5. Platform Statistics ── */
+  .stats-section { display:flex; flex-direction:column; gap:2.5rem; }
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1.5rem; }
+  .stat-card { background:linear-gradient(145deg, #121212, #0d0d0d); border:1px solid rgba(255,255,255,0.06); border-radius:20px; padding:2.25rem 1.5rem; text-align:center; display:flex; flex-direction:column; gap:0.35rem; box-shadow:0 4px 30px rgba(0,0,0,0.35); position:relative; overflow:hidden; }
+  .stat-card::before { content:''; position:absolute; top:0; left:0; width:100%; height:2px; background:linear-gradient(90deg, transparent, var(--red), transparent); opacity:0.7; }
+  .stat-val { font-size:2.4rem; font-weight:800; color:#ffffff; letter-spacing:-1px; line-height:1.1; }
+  .stat-lbl { font-size:0.76rem; font-weight:600; color:#757575; text-transform:uppercase; letter-spacing:0.8px; margin-top:0.25rem; }
+
+  @media (max-width:768px) {
+    .field-row { grid-template-columns:1fr; gap:1.5rem; }
+  }
+  @media (max-width:640px) {
+    .index-page { gap:4.5rem; }
+    .hero       { padding-top:2rem; }
+    .form-card  { padding:2rem 1.25rem; }
+    .field textarea { height:140px; }
+    .steps-grid { grid-template-columns:1fr; }
+    .features-grid { grid-template-columns:1fr; }
+    .stats-grid { grid-template-columns:1fr 1fr; gap:1rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="index-page">
+
+  <!-- ═══ 1. HERO SECTION ═══ -->
+  <section class="hero">
+    <span class="hero__badge"><i class="fa-solid fa-bolt"></i> Intelligent Platform</span>
+    <h1 class="hero__heading">🎬 Discover What People <span class="accent">Really Think</span> About Movies</h1>
+    <p class="hero__sub">Analyze movie reviews, compare ratings, explore audience insights and discover real movie information using AI-powered sentiment analysis.</p>
+    <a href="#analyze" class="hero__cta">Analyze Movie Review <i class="fa-solid fa-arrow-right"></i></a>
+  </section>
+
+
+  <!-- ═══ 2. HOW IT WORKS SECTION ═══ -->
+  <section class="how-section">
+    <div class="section-head">
+      <h2>How It Works</h2>
+      <p>Transforming text consensus into cinematic insight in three simple steps</p>
+    </div>
+    <div class="steps-grid">
+      <!-- Step 1 -->
+      <article class="step-card">
+        <div class="step-header">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <div class="step-num">1</div>
+        </div>
+        <h3>Search Your Movie</h3>
+        <p>Enter the movie name, give your personal rating and write your review.</p>
+      </article>
+      <!-- Step 2 -->
+      <article class="step-card">
+        <div class="step-header">
+          <i class="fa-solid fa-microchip"></i>
+          <div class="step-num">2</div>
+        </div>
+        <h3>AI Review Processing</h3>
+        <p>Our AI analyzes your review and fetches important movie information.</p>
+      </article>
+      <!-- Step 3 -->
+      <article class="step-card">
+        <div class="step-header">
+          <i class="fa-solid fa-chart-line"></i>
+          <div class="step-num">3</div>
+        </div>
+        <h3>Explore Smart Insights</h3>
+        <p>View ratings, sentiment, cast, trailer and interactive analytics instantly.</p>
+      </article>
+    </div>
+  </section>
+
+
+  <!-- ═══ 3. ANALYZE MOVIE FORM SECTION ═══ -->
+  <section class="form-section" id="analyze">
+    <div class="form-card">
+
+      <div class="form-card__header">
+        <div class="form-card__icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+        <div>
+          <p class="form-card__title">
+            Analyze a Review
+            <span>Fill in details below to unlock data visualization modules</span>
+          </p>
+        </div>
+      </div>
+
+      <form action="{{ url_for('predict') }}" method="POST" id="reviewForm" novalidate>
+        <div class="field-group">
+
+          <!-- Movie Name input block -->
+          <div class="field">
+            <label for="movie_name">
+              <i class="fa-solid fa-clapperboard"></i> Movie Name
+            </label>
+            <input type="text" id="movie_name" name="movie_name"
+                   placeholder="e.g. Inception, The Dark Knight, Dangal..."
+                   autocomplete="off" maxlength="120" />
+          </div>
+
+          <!-- Rating & Mood Double Item Form Row -->
+          <div class="field-row">
+            <!-- Star Rating widget container -->
+            <div class="star-rating-wrap">
+              <label class="field-label">
+                <i class="fa-solid fa-star"></i> Your Rating
+              </label>
+              <div class="star-row">
+                <div class="stars" id="starWidget">
+                  {% for i in range(10, 0, -1) %}
+                  <input type="radio" id="star{{ i }}" name="star_radio" value="{{ i }}" />
+                  <label for="star{{ i }}" title="{{ i }} / 10">★</label>
+                  {% endfor %}
+                </div>
+                <span class="rating-display" id="ratingDisplay">Not rated</span>
+              </div>
+              <input type="hidden" id="ratingHidden" name="user_rating" value="" />
+            </div>
+
+            <!-- Review Mood UI Field (Designed Placeholder Dropdown component) -->
+            <div class="field">
+              <label for="review_mood">
+                <i class="fa-solid fa-face-smile"></i> Review Mood
+              </label>
+              <div class="select-wrapper">
+                <select id="review_mood" name="review_mood">
+                  <option value="auto" selected>🤖 Auto Detect (Default)</option>
+                  <option value="positive">😊 Positive</option>
+                  <option value="neutral">😐 Neutral</option>
+                  <option value="negative">😞 Negative</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review text container element -->
+          <div class="field">
+            <label for="review">
+              <i class="fa-solid fa-pen-to-square"></i> Movie Review
+            </label>
+            <textarea id="review" name="review"
+                      placeholder="Paste or type the review here... e.g. 'This film was an absolute masterpiece. Direction, acting, and screenplay all top-notch.'"
+                      required aria-required="true"
+                      maxlength="5000"></textarea>
+            <span class="char-counter" id="charCount">0 / 5000</span>
+          </div>
+
+          <!-- Submit handle trigger button -->
+          <button type="submit" class="btn-analyze" id="analyzeBtn">
+            <span id="btnText"><i class="fa-solid fa-magnifying-glass-chart"></i> Analyze Movie Review &rarr;</span>
+            <span class="spinner" id="btnSpinner"></span>
+          </button>
+
+        </div>
+      </form>
+    </div>
+  </section>
+
+
+  <!-- ═══ 4. WHY CHOOSE YENTIFLIX SECTION ═══ -->
+  <section class="features-section">
+    <div class="section-head">
+      <h2>Why Choose YentiFlix</h2>
+      <p>A unified experience bridging premium styling with cognitive engineering components</p>
+    </div>
+    <div class="features-grid">
+      <!-- Feature 1 -->
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fa-solid fa-brain"></i></div>
+        <div class="feature-info">
+          <h3>AI Sentiment Analysis</h3>
+          <p>Instantly extracts structural linguistic tone profiling context from custom text compositions.</p>
+        </div>
+      </div>
+      <!-- Feature 2 -->
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fa-solid fa-film"></i></div>
+        <div class="feature-info">
+          <h3>Real Movie Information</h3>
+          <p>Syncs up seamlessly with TMDb and OMDb metadata platforms to update accurate release entries.</p>
+        </div>
+      </div>
+      <!-- Feature 3 -->
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fa-solid fa-sliders"></i></div>
+        <div class="feature-info">
+          <h3>Rating Comparison</h3>
+          <p>Evaluates your input preferences side by side against authoritative aggregate tracking scores.</p>
+        </div>
+      </div>
+      <!-- Feature 4 -->
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fa-solid fa-chart-pie"></i></div>
+        <div class="feature-info">
+          <h3>Interactive Analytics</h3>
+          <p>Renders real-time calculated distribution models using high-performance graphic structures.</p>
+        </div>
+      </div>
+      <!-- Feature 5 -->
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fa-solid fa-users"></i></div>
+        <div class="feature-info">
+          <h3>Cast & Crew</h3>
+          <p>Maps detailed biographical profile arrays connecting artists with character assignments.</p>
+        </div>
+      </div>
+      <!-- Feature 6 -->
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fa-brands fa-youtube"></i></div>
+        <div class="feature-info">
+          <h3>Official Trailer</h3>
+          <p>Integrates dynamic production trailers straight into standard modular workspace windows.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══ 5. PLATFORM STATISTICS SECTION ═══ -->
+  <section class="stats-section">
+    <div class="section-head">
+      <h2>Platform Metrics</h2>
+      <p>System tracking activity and pipeline capability indexes</p>
+    </div>
+    <div class="stats-grid">
+      <!-- Metric Card 1 -->
+      <div class="stat-card">
+        <span class="stat-val" data-target="100">100</span>
+        <span class="stat-lbl">Total Movie Reviews</span>
+      </div>
+      <!-- Metric Card 2 -->
+      <div class="stat-card">
+        <span class="stat-val" data-target="">50</span>
+        <span class="stat-lbl">Total Users</span>
+      </div>
+      <!-- Metric Card 3 -->
+      <div class="stat-card">
+        <span class="stat-val" data-target="">60</span>
+        <span class="stat-lbl">Movies Analyzed</span>
+      </div>
+      <!-- Metric Card 4 -->
+      <div class="stat-card">
+        <span class="stat-val" data-target="94">94.8%</span>
+        <span class="stat-lbl">Prediction Accuracy</span>
+      </div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+  // ── Star rating widget ──
+  var stars = document.querySelectorAll('#starWidget input[type=radio]');
+  var display = document.getElementById('ratingDisplay');
+  var hidden  = document.getElementById('ratingHidden');
+
+  stars.forEach(function(s){
+    s.addEventListener('change', function(){
+      var v = parseInt(this.value);
+      display.textContent = v + ' / 10';
+      hidden.value = v;
+      display.style.color = v >= 7 ? '#4ade80' : v >= 5 ? '#f5be42' : '#ff6b6b';
+    });
+  });
+
+  // ── Char counter ──
+  var ta = document.getElementById('review');
+  var cc = document.getElementById('charCount');
+  if(ta && cc){
+    ta.addEventListener('input', function(){
+      var l = ta.value.length;
+      cc.textContent = l.toLocaleString() + ' / 5000';
+      cc.classList.toggle('warn', l > 4250);
+    });
+  }
+
+  // ── Form submit loading ──
+  var form = document.getElementById('reviewForm');
+  var btn  = document.getElementById('analyzeBtn');
+  var btnT = document.getElementById('btnText');
+  var btnS = document.getElementById('btnSpinner');
+  if(form && btn){
+    form.addEventListener('submit', function(e){
+      var rev = ta ? ta.value.trim() : '';
+      if(!rev || rev.length < 10){
+        e.preventDefault();
+        if(ta){ ta.classList.add('input-error'); ta.focus(); }
+        var existing = form.querySelector('.field-error-msg');
+        if(!existing){
+          var msg = document.createElement('span');
+          msg.className = 'field-error-msg';
+          msg.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Review minimum 10 characters hona chahiye.';
+          ta.parentElement.appendChild(msg);
+          setTimeout(function(){ msg.remove(); ta.classList.remove('input-error'); }, 3000);
+        }
+        return;
+      }
+      btn.disabled = true;
+      if(btnT) btnT.innerHTML = '<i class="fa-solid fa-brain"></i> Analyzing...';
+      if(btnS) btnS.style.display = 'block';
+    });
+  }
+
+  // ── Clear error on input ──
+  if(ta) ta.addEventListener('input', function(){
+    this.classList.remove('input-error');
+    var m = this.parentElement.querySelector('.field-error-msg');
+    if(m) m.remove();
+  });
+
+  // ── Reset on back ──
+  window.addEventListener('pageshow', function(e){
+    if(e.persisted && btn){
+      btn.disabled = false;
+      if(btnT) btnT.innerHTML = '<i class="fa-solid fa-magnifying-glass-chart"></i> Analyze Movie Review &rarr;';
+      if(btnS) btnS.style.display = 'none';
+    }
+  });
+
+  // ── Interactive Counter Logic for Dashboard Metrics ──
+  if('IntersectionObserver' in window){
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if(entry.isIntersecting){
+          var targetEl = entry.target;
+          var targetVal = parseFloat(targetEl.getAttribute('data-target'));
+          if(!isNaN(targetVal)) {
+            var countTo = targetVal;
+            var start = 0;
+            var duration = 1500;
+            var startTime = null;
+            
+            function animateCount(timestamp) {
+              if(!startTime) startTime = timestamp;
+              var progress = Math.min((timestamp - startTime) / duration, 1);
+              var current = Math.floor(progress * countTo);
+              
+              if(targetEl.textContent.indexOf('%') !== -1 || targetVal < 100) {
+                targetEl.textContent = (progress * countTo).toFixed(1) + '%';
+              } else {
+                targetEl.textContent = current.toLocaleString();
+              }
+              
+              if(progress < 1) {
+                requestAnimationFrame(animateCount);
+              } else {
+                targetEl.textContent = targetEl.textContent.indexOf('%') !== -1 ? targetVal + '%' : countTo.toLocaleString();
+              }
+            }
+            requestAnimationFrame(animateCount);
+          }
+          observer.unobserve(targetEl);
+        }
+      });
+    }, { threshold: 0.2 });
+    
+    document.querySelectorAll('.stat-val').forEach(function(el){ observer.observe(el); });
+  }
+}());
+</script>
+{% endblock %}

@@ -1,0 +1,938 @@
+{% extends "base.html" %}
+{% block title %}Result — {{ display }} Sentiment{% endblock %}
+
+{% block extra_head %}
+<style>
+  :root {
+    --sp : #e50914;
+    --sg : rgba(229,9,20,0.4);
+    --st : rgba(229,9,20,0.08);
+    --sb : rgba(229,9,20,0.28);
+  }
+
+  .result-page { max-width:1200px; margin:0 auto; display:flex; flex-direction:column; gap:1.75rem; }
+
+  /* Glass card */
+  .gc { background:rgba(22,22,22,0.78); border:1px solid rgba(255,255,255,0.09); border-radius:22px; backdrop-filter:blur(20px) saturate(150%); -webkit-backdrop-filter:blur(20px) saturate(150%); box-shadow:0 4px 40px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.04) inset; overflow:hidden; transition:box-shadow 0.3s,border-color 0.3s; }
+  .gc:hover { box-shadow:0 8px 56px rgba(0,0,0,0.65),0 0 0 1px rgba(229,9,20,0.1) inset; border-color:rgba(229,9,20,0.18); }
+
+  .ch { display:flex; align-items:center; gap:0.75rem; padding:1.15rem 1.75rem; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .chi { width:36px; height:36px; border-radius:8px; background:var(--st); border:1px solid var(--sb); display:flex; align-items:center; justify-content:center; font-size:0.9rem; color:var(--sp); flex-shrink:0; }
+  .cht { font-size:0.95rem; font-weight:600; color:#f2f2f2; }
+  .chs { font-size:0.78rem; color:#606060; margin-left:auto; white-space:nowrap; }
+  .cb  { padding:1.75rem; }
+
+  /* ── Hero Upgrade (Review Highlights Style) ── */
+  .hero-card { animation:heroIn 0.55s ease both; }
+  @keyframes heroIn { from{opacity:0;transform:translateY(-18px)} to{opacity:1;transform:translateY(0)} }
+
+  .hero-strip { height:4px; background:linear-gradient(90deg,transparent,var(--sp) 30%,var(--sp) 70%,transparent); }
+
+  .hero-body { padding:2.25rem clamp(1.5rem,5vw,3rem); display:grid; grid-template-columns:1fr auto; gap:2rem; align-items:center; }
+
+  .verdict { display:flex; flex-direction:column; gap:0.85rem; }
+  .v-badge { display:inline-flex; align-items:center; gap:0.45rem; font-size:0.72rem; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; background:var(--st); border:1px solid var(--sb); color:var(--sp); padding:0.3rem 0.85rem; border-radius:99px; width:fit-content; }
+  .v-label { font-size:clamp(2.4rem,6vw,4.2rem); font-weight:700; line-height:1; letter-spacing:-1px; color:var(--sp); text-shadow:0 0 32px var(--sg); }
+  .v-msg   { font-size:0.95rem; color:#a0a0a0; max-width:460px; line-height:1.65; }
+
+  /* Premium Highlights UI Definitions */
+  .hl-container { display:flex; flex-direction:column; gap:0.65rem; margin-top:0.35rem; margin-bottom:0.5rem; }
+  .hl-item { display:flex; align-items:center; gap:0.65rem; font-size:0.92rem; font-weight:500; color:#e0e0e0; }
+  .hl-item i { font-size:0.85rem; width:18px; text-align:center; }
+  .v-summary-box { font-size:0.92rem; color:#b0b0b0; line-height:1.6; border-left:3px solid var(--sp); padding-left:0.85rem; margin-top:0.75rem; font-style:italic; background:rgba(255,255,255,0.02); padding-top:0.4rem; padding-bottom:0.4rem; border-radius:0 8px 8px 0; }
+
+  .v-emoji { font-size:clamp(4.5rem,9vw,7.5rem); line-height:1; filter:drop-shadow(0 0 24px var(--sg)); animation:float 3.5s ease-in-out infinite; user-select:none; text-align:center; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+
+  /* ── Two col ── */
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:1.75rem; animation:fadeUp 0.55s 0.1s ease both; }
+
+  /* ── Movie info ── */
+  .movie-poster-wrap { text-align:center; margin-bottom:1.25rem; }
+  .movie-poster-wrap img { width:130px; border-radius:10px; box-shadow:0 4px 24px rgba(0,0,0,0.6); }
+
+  .info-list { display:flex; flex-direction:column; }
+  .ir { display:flex; justify-content:space-between; align-items:flex-start; padding:0.7rem 0; border-bottom:1px solid rgba(255,255,255,0.05); gap:1rem; transition:background 0.2s; }
+  .ir:last-child { border-bottom:none; padding-bottom:0; }
+  .ir:hover { background:rgba(255,255,255,0.02); border-radius:6px; padding-left:4px; }
+  .irk { font-size:0.75rem; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; color:#808080; display:flex; align-items:center; gap:0.4rem; flex-shrink:0; min-width:90px; }
+  .irk i { color:var(--sp); font-size:0.68rem; }
+  .irv { font-size:0.875rem; font-weight:500; color:#f2f2f2; text-align:right; word-break:break-word; }
+  .irv.muted { color:#505050; font-style:italic; }
+  .irv a { color:var(--red); font-weight:600; }
+  .irv a:hover { opacity:0.8; }
+  .irv small { display:block; font-size:0.7rem; color:#808080; margin-top:0.1rem; }
+
+  /* Status badges */
+  .sbadge { display:inline-flex; align-items:center; gap:0.35rem; font-size:0.68rem; font-weight:700; letter-spacing:0.7px; text-transform:uppercase; padding:0.25rem 0.7rem; border-radius:99px; border:1px solid transparent; }
+  .sbadge i { font-size:0.4rem; }
+  .blockbuster { background:rgba(255,215,0,0.12);  color:#f5c842; border-color:rgba(255,215,0,0.3); }
+  .superhit    { background:rgba(46,204,113,0.12); color:#4ade80; border-color:rgba(46,204,113,0.3); }
+  .hit         { background:rgba(0,194,255,0.12);  color:#00c2ff; border-color:rgba(0,194,255,0.3); }
+  .average     { background:rgba(240,165,0,0.12);  color:#f5be42; border-color:rgba(240,165,0,0.3); }
+  .flop        { background:rgba(229,9,20,0.12);   color:#ff6b6b; border-color:rgba(229,9,20,0.3); }
+  .na          { background:rgba(255,255,255,0.05);color:#505050; border-color:rgba(255,255,255,0.06); }
+
+  /* ── Score card ── */
+  .score-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  .stile { background:#1e1e1e; border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:1.1rem; text-align:center; transition:border-color 0.25s,transform 0.25s; }
+  .stile:hover { border-color:var(--sb); transform:translateY(-3px); }
+  .stv { font-size:1.7rem; font-weight:700; color:var(--sp); line-height:1.1; }
+  .stk { margin-top:0.25rem; font-size:0.68rem; font-weight:600; letter-spacing:0.6px; text-transform:uppercase; color:#808080; }
+
+  /* ── AI Review Analysis (replaces Sentiment Score card) ── */
+  .ai-verdict-wrap { display:flex; flex-direction:column; gap:1.25rem; }
+
+  .ai-main { display:flex; align-items:center; gap:1.25rem; }
+  .ai-emoji-big { font-size:3.5rem; line-height:1; filter:drop-shadow(0 0 18px var(--sg)); animation:float 3.5s ease-in-out infinite; flex-shrink:0; }
+  .ai-text-block { display:flex; flex-direction:column; gap:0.4rem; }
+  .ai-verdict-label { font-size:1.9rem; font-weight:700; color:var(--sp); line-height:1; letter-spacing:-0.5px; text-shadow:0 0 24px var(--sg); }
+  .ai-verdict-sub   { font-size:0.82rem; color:#808080; font-weight:500; }
+
+  .ai-summary { font-size:0.92rem; color:#c0c0c0; line-height:1.7; padding:1rem 1.2rem; background:rgba(255,255,255,0.03); border-left:3px solid var(--sp); border-radius:0 10px 10px 0; font-style:italic; }
+
+  .ai-conf-wrap { display:flex; flex-direction:column; gap:0.5rem; }
+  .ai-conf-row  { display:flex; justify-content:space-between; align-items:center; }
+  .ai-conf-lbl  { font-size:0.78rem; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; color:#808080; }
+  .ai-conf-val  { font-size:0.9rem; font-weight:700; color:var(--sp); }
+  .ai-bar-track { height:6px; background:#1e1e1e; border-radius:99px; overflow:hidden; }
+  .ai-bar-fill  { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--sp),color-mix(in srgb,var(--sp) 60%,#fff 40%)); box-shadow:0 0 8px var(--sg); width:0%; transition:width 1.1s cubic-bezier(0.22,1,0.36,1); }
+
+  .ai-rec-badge { display:inline-flex; align-items:center; gap:0.55rem; padding:0.6rem 1.2rem; border-radius:12px; font-size:0.85rem; font-weight:700; border:1px solid transparent; }
+  .ai-rec-pos { background:rgba(46,204,113,0.12); color:#4ade80; border-color:rgba(46,204,113,0.3); }
+  .ai-rec-neu { background:rgba(240,165,0,0.12);  color:#f5be42; border-color:rgba(240,165,0,0.3); }
+  .ai-rec-neg { background:rgba(229,9,20,0.12);   color:#ff6b6b; border-color:rgba(229,9,20,0.3); }
+
+  /* ── Community Verdict ── */
+  .community-section { animation:fadeUp 0.55s 0.11s ease both; }
+  .community-body { display:flex; flex-direction:column; gap:1.5rem; }
+
+  .community-stars { display:flex; align-items:center; gap:1rem; }
+  .star-display { font-size:1.5rem; letter-spacing:2px; line-height:1; }
+  .star-display .filled { color:#f5c842; }
+  .star-display .empty  { color:#333; }
+  .community-label { font-size:1rem; font-weight:600; color:#f2f2f2; }
+  .community-sub   { font-size:0.78rem; color:#606060; margin-top:0.15rem; }
+
+  .audience-bars { display:flex; flex-direction:column; gap:0.85rem; }
+  .abar-row   { display:flex; flex-direction:column; gap:0.35rem; }
+  .abar-top   { display:flex; justify-content:space-between; align-items:center; }
+  .abar-label { font-size:0.78rem; font-weight:600; color:#a0a0a0; display:flex; align-items:center; gap:0.4rem; }
+  .abar-pct   { font-size:0.82rem; font-weight:700; color:#f2f2f2; }
+  .abar-track { height:8px; background:#1e1e1e; border-radius:99px; overflow:hidden; }
+  .abar-fill  { height:100%; border-radius:99px; width:0%; transition:width 1.3s cubic-bezier(0.22,1,0.36,1); }
+  .abar-pos   { background:linear-gradient(90deg,#2ecc71,#4ade80); box-shadow:0 0 8px rgba(46,204,113,0.35); }
+  .abar-neg   { background:linear-gradient(90deg,#e50914,#ff6b6b); box-shadow:0 0 8px rgba(229,9,20,0.35); }
+  .abar-neu   { background:linear-gradient(90deg,#f5c842,#fde68a); box-shadow:0 0 8px rgba(245,200,66,0.35); }
+
+  .community-footer { font-size:0.72rem; color:#505050; font-style:italic; text-align:center; padding-top:0.5rem; border-top:1px solid rgba(255,255,255,0.05); }
+
+  /* ── Recommendation Meter ── */
+  .rec-meter-section { animation:fadeUp 0.55s 0.145s ease both; }
+  .rec-meter-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; }
+
+  .meter-wrap { display:flex; flex-direction:column; align-items:center; gap:0.75rem; }
+  .meter-ring { position:relative; width:110px; height:110px; }
+  .meter-svg  { width:110px; height:110px; transform:rotate(-90deg); }
+  .meter-bg   { fill:none; stroke:#1e1e1e; stroke-width:10; }
+  .meter-arc  { fill:none; stroke-width:10; stroke-linecap:round; stroke-dasharray:283; stroke-dashoffset:283; transition:stroke-dashoffset 1.2s cubic-bezier(0.22,1,0.36,1); }
+  .meter-arc.pos-arc { stroke:url(#arcGradPos); }
+  .meter-arc.neg-arc { stroke:url(#arcGradNeg); }
+  .meter-inner { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .meter-pct  { font-size:1.4rem; font-weight:700; color:#f2f2f2; line-height:1; }
+  .meter-tiny { font-size:0.6rem; color:#808080; text-transform:uppercase; letter-spacing:0.5px; margin-top:0.1rem; }
+  .meter-title { font-size:0.8rem; font-weight:600; color:#a0a0a0; text-align:center; }
+  .meter-desc  { font-size:0.7rem; color:#606060; text-align:center; }
+
+  .review-strength { display:flex; flex-direction:column; gap:0.65rem; }
+  .rs-row   { display:flex; align-items:center; gap:0.75rem; }
+  .rs-label { font-size:0.75rem; font-weight:600; color:#808080; min-width:100px; }
+  .rs-bar   { flex:1; height:6px; background:#1e1e1e; border-radius:99px; overflow:hidden; }
+  .rs-fill  { height:100%; border-radius:99px; transition:width 1.3s cubic-bezier(0.22,1,0.36,1); }
+  .rs-fill.strong   { background:linear-gradient(90deg,var(--sp),color-mix(in srgb,var(--sp) 60%,#fff)); }
+  .rs-fill.moderate { background:linear-gradient(90deg,#f5c842,#fde68a); }
+  .rs-fill.weak     { background:linear-gradient(90deg,#3b82f6,#60a5fa); }
+  .rs-pct   { font-size:0.72rem; font-weight:700; color:#f2f2f2; min-width:32px; text-align:right; }
+
+  /* ── Movie Hero (poster + info side-by-side) ── */
+  .movie-hero-layout { display:grid; grid-template-columns:auto 1fr; gap:1.75rem; align-items:flex-start; }
+  .movie-poster-col  { display:flex; flex-direction:column; align-items:center; gap:0.85rem; }
+  .movie-poster-lg   { width:160px; border-radius:14px; box-shadow:0 8px 32px rgba(0,0,0,0.7); display:block; }
+  .poster-status     { width:100%; }
+
+  .movie-info-col { display:flex; flex-direction:column; gap:0; }
+
+  /* Cast card upgrade */
+  .cast-card { position:relative; }
+  .cast-card::after { content:''; position:absolute; inset:0; border-radius:12px; background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,0.5)); pointer-events:none; opacity:0; transition:opacity 0.25s; }
+  .cast-card:hover::after { opacity:1; }
+
+  /* Trailer button */
+  .trailer-btn { display:inline-flex; align-items:center; gap:0.6rem; padding:0.65rem 1.4rem; background:linear-gradient(135deg,#e50914,#c1060e); color:#fff; font-size:0.875rem; font-weight:700; border-radius:10px; text-decoration:none; box-shadow:0 4px 16px rgba(229,9,20,0.35); transition:transform 0.2s,box-shadow 0.2s,filter 0.2s; }
+  .trailer-btn:hover { transform:translateY(-2px); box-shadow:0 6px 24px rgba(229,9,20,0.5); filter:brightness(1.08); }
+  .trailer-btn i { font-size:1rem; }
+
+  /* Review card premium style */
+  .review-quote { font-size:1.1rem; color:var(--sp); margin-bottom:0.5rem; opacity:0.6; }
+  .review-body  { font-size:0.95rem; color:#c0c0c0; line-height:1.85; white-space:pre-wrap; word-break:break-word; }
+  .review-body.truncated { display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical; overflow:hidden; }
+
+  @media (max-width:640px) {
+    .movie-hero-layout { grid-template-columns:1fr; }
+    .movie-poster-col  { flex-direction:row; align-items:flex-start; gap:1rem; }
+    .movie-poster-lg   { width:100px; }
+    .rec-meter-grid    { grid-template-columns:1fr; }
+    .ai-main           { flex-direction:column; align-items:flex-start; gap:0.75rem; }
+  }
+
+  /* ── Rating comparison chart ── */
+  .rating-chart-section { animation:fadeUp 0.55s 0.12s ease both; }
+  .rating-bars { display:flex; flex-direction:column; gap:1rem; }
+  .rbar-row { display:flex; flex-direction:column; gap:0.4rem; }
+  .rbar-top { display:flex; justify-content:space-between; align-items:center; }
+  .rbar-label { font-size:0.8rem; font-weight:600; color:#a0a0a0; display:flex; align-items:center; gap:0.4rem; }
+  .rbar-val   { font-size:0.9rem; font-weight:700; color:#f2f2f2; }
+  .rbar-track { height:10px; background:#1e1e1e; border-radius:99px; overflow:hidden; }
+  .rbar-fill  { height:100%; border-radius:99px; width:0%; transition:width 1.2s cubic-bezier(0.22,1,0.36,1); }
+  .rbar-fill.user-color   { background:linear-gradient(90deg,#3b82f6,#60a5fa); box-shadow:0 0 8px rgba(59,130,246,0.4); }
+  .rbar-fill.tmdb-color   { background:linear-gradient(90deg,#e50914,#ff6b6b); box-shadow:0 0 8px rgba(229,9,20,0.4); }
+  .rbar-fill.imdb-color   { background:linear-gradient(90deg,#f5c842,#fde68a); box-shadow:0 0 8px rgba(245,200,66,0.4); }
+  .rbar-fill.meta-color   { background:linear-gradient(90deg,#2ecc71,#4ade80); box-shadow:0 0 8px rgba(46,204,113,0.4); }
+
+  /* ── Overview ── */
+  .overview-section { animation:fadeUp 0.55s 0.13s ease both; }
+  .overview-text    { font-size:0.95rem; color:#a0a0a0; line-height:1.8; }
+
+  /* ── Cast ── */
+  .cast-section { animation:fadeUp 0.55s 0.15s ease both; }
+  .cast-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:1rem; }
+  .cast-card { background:#1e1e1e; border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:1.1rem 0.75rem; text-align:center; display:flex; flex-direction:column; align-items:center; gap:0.5rem; transition:border-color 0.25s,transform 0.25s; }
+  .cast-card:hover { border-color:var(--sb); transform:translateY(-4px); box-shadow:0 10px 28px rgba(0,0,0,0.4); }
+  .cast-avatar { width:52px; height:52px; border-radius:50%; border:2px solid var(--sb); display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0; background:#272727; }
+  .cast-avatar img { width:100%; height:100%; object-fit:cover; }
+  .cast-avatar span { font-size:1.4rem; }
+  .cast-name { font-size:0.78rem; font-weight:600; color:#f2f2f2; line-height:1.3; }
+  .cast-role { font-size:0.68rem; color:#808080; }
+  .cast-empty { display:flex; flex-direction:column; align-items:center; gap:0.75rem; padding:2rem; text-align:center; color:#505050; }
+  .cast-empty i { font-size:2rem; }
+  .cast-empty p { font-size:0.875rem; line-height:1.55; }
+  .cast-empty strong { display:block; font-size:0.9rem; color:#808080; margin-bottom:0.2rem; }
+
+  /* ── Charts ── */
+  .charts-section { animation:fadeUp 0.55s 0.2s ease both; }
+  .charts-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.25rem; }
+  .chart-card { background:#161616; border:1px solid rgba(255,255,255,0.07); border-radius:20px; overflow:hidden; transition:border-color 0.3s,transform 0.3s; }
+  .chart-card:hover { border-color:var(--sb); transform:translateY(-3px); }
+  .chart-head { display:flex; align-items:center; justify-content:space-between; padding:1rem 1.25rem; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .chart-title { font-size:0.875rem; font-weight:600; color:#f2f2f2; display:flex; align-items:center; gap:0.5rem; }
+  .chart-title i { color:var(--sp); }
+  .chart-tag { font-size:0.68rem; font-weight:600; color:#505050; background:#1e1e1e; padding:0.18rem 0.55rem; border-radius:99px; border:1px solid rgba(255,255,255,0.06); }
+  .chart-body { padding:1.25rem; min-height:200px; display:flex; align-items:center; justify-content:center; }
+  .chart-img  { width:100%; height:auto; border-radius:8px; }
+  .chart-ph   { display:flex; flex-direction:column; align-items:center; gap:0.75rem; color:#505050; text-align:center; }
+  .chart-ph i { font-size:2.2rem; }
+  .chart-ph p { font-size:0.82rem; line-height:1.55; }
+  .chart-ph strong { display:block; font-size:0.875rem; color:#808080; margin-bottom:0.2rem; }
+
+  /* ── Review ── */
+  .review-section { animation:fadeUp 0.55s 0.25s ease both; }
+  .review-body { font-size:0.95rem; color:#a0a0a0; line-height:1.8; white-space:pre-wrap; word-break:break-word; }
+  .review-body.truncated { display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical; overflow:hidden; }
+  .read-more { display:inline-flex; align-items:center; gap:0.35rem; margin-top:0.85rem; font-size:0.82rem; font-weight:600; color:var(--sp); background:transparent; border:none; padding:0; cursor:pointer; transition:opacity 0.2s; }
+  .read-more:hover { opacity:0.72; }
+
+  /* ── Actions ── */
+  .actions-row { display:flex; justify-content:center; flex-wrap:wrap; gap:1rem; padding:0.5rem 0; animation:fadeUp 0.55s 0.3s ease both; }
+  .btn { display:inline-flex; align-items:center; gap:0.55rem; font-family:var(--font); font-size:0.9rem; font-weight:600; padding:0.8rem 1.75rem; border-radius:12px; border:1px solid transparent; cursor:pointer; text-decoration:none; transition:transform 0.25s,box-shadow 0.25s,background 0.25s,border-color 0.25s; position:relative; overflow:hidden; }
+  .btn:hover { transform:translateY(-2px); }
+  .btn-primary { background:linear-gradient(135deg,var(--red),#c1060e); color:#fff; box-shadow:0 4px 18px rgba(229,9,20,0.35); }
+  .btn-primary:hover { box-shadow:0 8px 28px rgba(229,9,20,0.5); filter:brightness(1.07); }
+  .btn-primary::before { content:''; position:absolute; top:0; left:-100%; width:60%; height:100%; background:linear-gradient(105deg,transparent,rgba(255,255,255,0.18),transparent); transition:left 0.5s; }
+  .btn-primary:hover::before { left:160%; }
+  .btn-ghost { background:transparent; color:#a0a0a0; border-color:rgba(255,255,255,0.1); }
+  .btn-ghost:hover { color:#f2f2f2; background:#1e1e1e; border-color:var(--sb); }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+  @media (max-width:900px) { .two-col { grid-template-columns:1fr; } }
+  @media (max-width:640px) {
+    .hero-body { grid-template-columns:1fr; }
+    .v-emoji   { display:none; }
+    .score-grid{ grid-template-columns:1fr 1fr; }
+    .cb        { padding:1.25rem; }
+    .ch        { padding:1rem 1.25rem; }
+    .btn       { width:100%; justify-content:center; }
+    .actions-row { flex-direction:column; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{# ── Variables ── #}
+{% set conf_num = confidence | replace('%','') | float %}
+{# Use real status from TMDb/OMDb via app.py #}
+{% set s_key   = status_color if status_color and status_color != 'na' else 'na' %}
+{% set s_label = status       if status       and status       != 'N/A' else 'N/A' %}
+
+{# Rating bar widths (0–10 scale → percentage out of 10) #}
+{% set user_w = ((user_rating | float) * 10) | int if user_rating else 0 %}
+{% set tmdb_w = ((tmdb_rating | float) * 10) | int if tmdb_rating and tmdb_rating != 'N/A' else 0 %}
+{% set imdb_w = ((imdb_rating | float) * 10) | int if imdb_rating and imdb_rating != 'N/A' else 0 %}
+{% set meta_w = ((metascore   | float) / 100 * 100) | int if metascore and metascore != 'N/A' else 0 %}
+
+{# Derive dynamic baseline value out of 10 for calculation #}
+{% set base_rating = user_rating | float if user_rating else (imdb_rating | float if imdb_rating and imdb_rating != 'N/A' else (tmdb_rating | float if tmdb_rating and tmdb_rating != 'N/A' else (metascore | float / 10 if metascore and metascore != 'N/A' else (7.5 if css == 'positive' else 4.0)))) %}
+
+{# Dynamic recommendation computations #}
+{% set rec_score = ((base_rating * 6) + (conf_num * 0.4)) | int %}
+{% set rec_score = 100 if rec_score > 100 else (10 if rec_score < 10 else rec_score) %}
+
+{% if rec_score >= 80 %}
+  {% set rec_label = "Highly Recommended" %}
+  {% set rec_desc = "An absolute must-watch praised by critics and matching your sentiment perfectly." %}
+{% elif rec_score >= 65 %}
+  {% set rec_label = "Good Choice" %}
+  {% set rec_desc = "A solid, enjoyable production with positive signals overall." %}
+{% elif rec_score >= 45 %}
+  {% set rec_label = "Average" %}
+  {% set rec_desc = "Presents mixed reactions. May appeal to dedicated fans of the genre." %}
+{% else %}
+  {% set rec_label = "Not Recommended" %}
+  {% set rec_desc = "Strong negative consensus across metrics. You might want to skip this one." %}
+{% endif %}
+
+{# Dynamic Community Opinion computations #}
+{% if css == 'positive' %}
+  {% set op_pos = (55 + (base_rating * 3.5) + (conf_num * 0.1)) | int %}
+  {% set op_pos = 96 if op_pos > 96 else op_pos %}
+  {% set op_neg = (4 + (10 - base_rating) * 2) | int %}
+  {% set op_mix = (100 - op_pos - op_neg) | int %}
+{% else %}
+  {% set op_neg = (55 + ((10 - base_rating) * 3.5) + (conf_num * 0.1)) | int %}
+  {% set op_neg = 96 if op_neg > 96 else op_neg %}
+  {% set op_pos = (4 + base_rating * 2) | int %}
+  {% set op_mix = (100 - op_neg - op_pos) | int %}
+{% endif %}
+
+{# Dynamic Review Strength status #}
+{% if conf_num >= 85 %}
+  {% set str_label = "Very Strong Review" %}
+{% elif conf_num >= 65 %}
+  {% set str_label = "Strong Review" %}
+{% elif conf_num >= 45 %}
+  {% set str_label = "Moderate Review" %}
+{% else %}
+  {% set str_label = "Weak Review" %}
+{% endif %}
+
+<div class="result-page" id="resultPage"
+     data-sentiment="{{ css }}"
+     data-confidence="{{ conf_num }}">
+
+  <!-- ═══ 1. RESULT HERO (UPGRADED TO PREMIUM REVIEW HIGHLIGHTS) ═══ -->
+  <section class="gc hero-card">
+    <div class="hero-strip"></div>
+    <div class="hero-body">
+      <div class="verdict">
+        <span class="v-badge"><i class="fa-solid fa-clapperboard"></i> ✨ Review Highlights</span>
+        <h1 class="v-label" style="font-size: clamp(2rem, 5vw, 3.2rem); margin-bottom: 0.25rem;">{{ display | upper }}</h1>
+        
+        <!-- Premium Insight Bullet Lists Dynamic Configuration -->
+        <div class="hl-container">
+          {% if css == 'positive' %}
+            <div class="hl-item"><i class="fa-solid fa-heart" style="color:#2ecc71;"></i> Loved by your review</div>
+            <div class="hl-item"><i class="fa-solid fa-film" style="color:#2ecc71;"></i> Strong recommendation for movie lovers</div>
+            <div class="hl-item"><i class="fa-solid fa-star" style="color:#2ecc71;"></i> Great overall viewing experience</div>
+            <div class="hl-item"><i class="fa-solid fa-popcorn" style="color:#2ecc71;"></i> Perfect for fans of this genre</div>
+          {% elif css == 'neutral' or display | lower == 'neutral' %}
+            <div class="hl-item"><i class="fa-solid fa-masks-theater" style="color:#f5be42;"></i> Mixed overall opinion</div>
+            <div class="hl-item"><i class="fa-solid fa-scale-balanced" style="color:#f5be42;"></i> Balanced review</div>
+            <div class="hl-item"><i class="fa-solid fa-popcorn" style="color:#f5be42;"></i> Suitable for selective viewers</div>
+            <div class="hl-item"><i class="fa-solid fa-comment-dots" style="color:#f5be42;"></i> Contains both positive and critical observations</div>
+          {% else %}
+            <div class="hl-item"><i class="fa-solid fa-triangle-exclamation" style="color:#e50914;"></i> Critical overall opinion</div>
+            <div class="hl-item"><i class="fa-solid fa-masks-theater" style="color:#e50914;"></i> Some aspects may disappoint viewers</div>
+            <div class="hl-item"><i class="fa-solid fa-chart-line-down" style="color:#e50914;"></i> Not strongly recommended</div>
+            <div class="hl-item"><i class="fa-solid fa-eye" style="color:#e50914;"></i> Consider watching with different expectations</div>
+          {% endif %}
+        </div>
+
+        <!-- Short Cinematic Summary Block -->
+        <p class="v-summary-box">
+          {% if css == 'positive' %}
+            "This review reflects a highly enjoyable movie experience and strongly recommends the film."
+          {% elif css == 'neutral' or display | lower == 'neutral' %}
+            "This review presents a balanced opinion with both strengths and weaknesses."
+          {% else %}
+            "This review suggests several weaknesses that may affect the overall viewing experience."
+          {% endif %}
+        </p>
+      </div>
+      <div class="v-emoji" aria-label="{{ display }} emoji" role="img">{{ emoji }}</div>
+    </div>
+  </section>
+
+
+  <!-- ═══ 2. MOVIE HERO CARD ═══ -->
+  <section class="gc" style="animation:fadeUp 0.55s 0.08s ease both;">
+    <div class="ch">
+      <div class="chi"><i class="fa-solid fa-film"></i></div>
+      <p class="cht">{{ movie_name if movie_name and movie_name != 'N/A' else 'Movie Details' }}</p>
+      <span class="chs">{% if movie_name and movie_name != 'N/A' %}TMDb + OMDb{% else %}Enter movie name to unlock{% endif %}</span>
+    </div>
+    <div class="cb">
+      <div class="movie-hero-layout">
+
+        {# ── Left: Poster + badges ── #}
+        <div class="movie-poster-col">
+          {% if poster and poster != '' %}
+            <img src="{{ poster }}" alt="{{ movie_name }} poster" class="movie-poster-lg"
+                 onerror="this.style.display='none'" />
+          {% else %}
+            <div style="width:160px;height:220px;background:#1e1e1e;border-radius:14px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.07);">
+              <i class="fa-solid fa-film" style="font-size:2.5rem;color:#333;"></i>
+            </div>
+          {% endif %}
+
+          <div class="sbadge {{ s_key }}" style="width:100%;justify-content:center;">
+            <i class="fa-solid fa-circle"></i> {{ s_label }}
+          </div>
+
+          {% if css == 'positive' and conf_num >= 75 %}
+            <div style="text-align:center;font-size:0.72rem;font-weight:600;color:#4ade80;background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.25);padding:0.3rem 0.6rem;border-radius:8px;width:100%;">🟢 Highly Recommended</div>
+          {% elif css == 'positive' %}
+            <div style="text-align:center;font-size:0.72rem;font-weight:600;color:#f5be42;background:rgba(240,165,0,0.08);border:1px solid rgba(240,165,0,0.25);padding:0.3rem 0.6rem;border-radius:8px;width:100%;">🟡 Mixed Reviews</div>
+          {% else %}
+            <div style="text-align:center;font-size:0.72rem;font-weight:600;color:#ff6b6b;background:rgba(229,9,20,0.08);border:1px solid rgba(229,9,20,0.25);padding:0.3rem 0.6rem;border-radius:8px;width:100%;">🔴 Not Recommended</div>
+          {% endif %}
+        </div>
+
+        {# ── Right: Info rows ── #}
+        <div class="movie-info-col">
+          <dl class="info-list">
+
+            <div class="ir">
+              <dt class="irk"><i class="fa-solid fa-calendar-days"></i> Released</dt>
+              <dd class="irv {% if not release_date or release_date == 'N/A' %}muted{% endif %}">
+                {{ release_date if release_date and release_date != 'N/A' else '—' }}
+              </dd>
+            </div>
+
+            {% if genre and genre != 'N/A' %}
+            <div class="ir">
+              <dt class="irk"><i class="fa-solid fa-tags"></i> Genre</dt>
+              <dd class="irv" style="font-size:0.8rem">{{ genre }}</dd>
+            </div>
+            {% endif %}
+
+            {% if runtime and runtime != 'N/A' %}
+            <div class="ir">
+              <dt class="irk"><i class="fa-solid fa-clock"></i> Runtime</dt>
+              <dd class="irv">{{ runtime }}</dd>
+            </div>
+            {% endif %}
+
+            {% if director and director != 'N/A' %}
+            <div class="ir">
+              <dt class="irk"><i class="fa-solid fa-video"></i> Director</dt>
+              <dd class="irv">{{ director }}</dd>
+            </div>
+            {% endif %}
+
+            {% if imdb_rating and imdb_rating != 'N/A' %}
+            <div class="ir">
+              <dt class="irk"><i class="fa-brands fa-imdb"></i> IMDb</dt>
+              <dd class="irv">
+                ⭐ {{ imdb_rating }} / 10
+                {% if imdb_votes and imdb_votes != 'N/A' %}<small>{{ imdb_votes }} votes</small>{% endif %}
+              </dd>
+            </div>
+            {% endif %}
+
+            {% if tmdb_rating and tmdb_rating != 'N/A' %}
+            <div class="ir">
+              <dt class="irk"><i class="fa-solid fa-star"></i> TMDb</dt>
+              <dd class="irv">
+                <i class="fa-solid fa-star" style="color:#f5c842;margin-right:0.2rem"></i>
+                {{ tmdb_rating }} / 10
+                {% if vote_count and vote_count > 0 %}<small>{{ "{:,}".format(vote_count) }} votes</small>{% endif %}
+              </dd>
+            </div>
+            {% endif %}
+
+            {% if user_rating %}
+            <div class="ir">
+              <dt class="irk"><i class="fa-solid fa-user-star"></i> Your Rating</dt>
+              <dd class="irv" style="color:{% if user_rating | float >= 7.0 %}#4ade80{% elif user_rating | float >= 5.0 %}#f5be42{% else %}#ff6b6b{% endif %}">
+                {{ user_rating }} / 10 &nbsp;{% for i in range(user_rating | int) %}★{% endfor %}
+              </dd>
+            </div>
+            {% endif %}
+
+            {% if metascore and metascore != 'N/A' %}
+            <div class="ir">
+              <dt class="irk"><i class="fa-solid fa-m"></i> Metascore</dt>
+              <dd class="irv">{{ metascore }} / 100</dd>
+            </div>
+            {% endif %}
+
+            {% if box_office and box_office != 'N/A' %}
+            <div class="ir">
+              <dt class="irk"><i class="fa-solid fa-ticket"></i> Box Office</dt>
+              <dd class="irv">{{ box_office }}</dd>
+            </div>
+            {% endif %}
+
+            {% if awards and awards != 'N/A' %}
+            <div class="ir">
+              <dt class="irk"><i class="fa-solid fa-trophy"></i> Awards</dt>
+              <dd class="irv" style="font-size:0.78rem">{{ awards }}</dd>
+            </div>
+            {% endif %}
+
+          </dl>
+
+          {% if trailer and trailer != '' %}
+          <div style="margin-top:1.1rem;">
+            <a href="{{ trailer }}" target="_blank" rel="noopener" class="trailer-btn">
+              <i class="fa-brands fa-youtube"></i> Watch Trailer
+            </a>
+          </div>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══ 3. AI REVIEW ANALYSIS ═══ -->
+  <section class="gc" style="animation:fadeUp 0.55s 0.1s ease both;">
+    <div class="ch">
+      <div class="chi"><i class="fa-solid fa-brain"></i></div>
+      <p class="cht">AI Review Analysis</p>
+      <span class="chs">Powered by ML</span>
+    </div>
+    <div class="cb">
+      <div class="ai-verdict-wrap">
+
+        <div class="ai-main">
+          <div class="ai-emoji-big">{{ emoji }}</div>
+          <div class="ai-text-block">
+            <div class="ai-verdict-label">{{ display | upper }}</div>
+            <div class="ai-verdict-sub">AI Sentiment Verdict</div>
+          </div>
+        </div>
+
+        <p class="ai-summary">
+          {% if css == 'positive' and conf_num >= 90 %}Your review expresses a <strong>strongly positive</strong> opinion about this movie. The AI detected clear enthusiasm and appreciation in your writing.
+          {% elif css == 'positive' and conf_num >= 70 %}Your review expresses a <strong>positive</strong> opinion about this movie. The AI found generally favourable sentiments in your review.
+          {% elif css == 'positive' %}Your review leans <strong>positive</strong>, though with some mixed signals. Overall the AI detected a favourable opinion.
+          {% elif css == 'negative' and font_num >= 90 or (css == 'negative' and conf_num >= 90) %}Your review expresses a <strong>strongly negative</strong> opinion about this movie. The AI detected clear dissatisfaction in your writing.
+          {% elif css == 'negative' and conf_num >= 70 %}Your review expresses a <strong>negative</strong> opinion about this movie. The AI found several unfavourable sentiments in your review.
+          {% else %}Your review leans <strong>negative</strong> with some mixed signals. Overall the AI detected an unfavourable opinion.{% endif %}
+        </p>
+
+        <div class="ai-conf-wrap">
+          <div class="ai-conf-row">
+            <span class="ai-conf-lbl">AI Confidence</span>
+            <span class="ai-conf-val">{{ confidence }}</span>
+          </div>
+          <div class="ai-bar-track"><div class="ai-bar-fill" id="aiBar"></div></div>
+        </div>
+
+        {% if css == 'positive' and conf_num >= 75 %}
+          <div class="ai-rec-badge ai-rec-pos"><i class="fa-solid fa-circle-check"></i> Highly Recommended — Great watch!</div>
+        {% elif css == 'positive' %}
+          <div class="ai-rec-badge ai-rec-neu"><i class="fa-solid fa-circle-half-stroke"></i> Mixed Reviews — Worth a watch</div>
+        {% else %}
+          <div class="ai-rec-badge ai-rec-neg"><i class="fa-solid fa-circle-xmark"></i> Not Recommended — Skip this one</div>
+        {% endif %}
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══ 3. RATING COMPARISON CHART ═══ -->
+  {% if tmdb_rating != 'N/A' or imdb_rating != 'N/A' or user_rating %}
+  <section class="gc rating-chart-section">
+    <div class="ch">
+      <div class="chi"><i class="fa-solid fa-chart-bar"></i></div>
+      <p class="cht">Rating Comparison</p>
+      <span class="chs">Your rating vs platforms</span>
+    </div>
+    <div class="cb">
+      <div class="rating-bars">
+
+        {% if user_rating %}
+        <div class="rbar-row">
+          <div class="rbar-top">
+            <span class="rbar-label"><i class="fa-solid fa-user-star" style="color:#3b82f6"></i> Your Rating</span>
+            <span class="rbar-val">{{ user_rating }} / 10</span>
+          </div>
+          <div class="rbar-track">
+            <div class="rbar-fill user-color" data-w="{{ user_w }}"></div>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if tmdb_rating and tmdb_rating != 'N/A' %}
+        <div class="rbar-row">
+          <div class="rbar-top">
+            <span class="rbar-label"><i class="fa-solid fa-star" style="color:var(--red)"></i> TMDb Rating</span>
+            <span class="rbar-val">{{ tmdb_rating }} / 10</span>
+          </div>
+          <div class="rbar-track">
+            <div class="rbar-fill tmdb-color" data-w="{{ tmdb_w }}"></div>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if imdb_rating and imdb_rating != 'N/A' %}
+        <div class="rbar-row">
+          <div class="rbar-top">
+            <span class="rbar-label"><i class="fa-brands fa-imdb" style="color:#f5c842"></i> IMDb Rating</span>
+            <span class="rbar-val">{{ imdb_rating }} / 10</span>
+          </div>
+          <div class="rbar-track">
+            <div class="rbar-fill imdb-color" data-w="{{ imdb_w }}"></div>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if metascore and metascore != 'N/A' %}
+        <div class="rbar-row">
+          <div class="rbar-top">
+            <span class="rbar-label"><i class="fa-solid fa-m" style="color:#2ecc71"></i> Metascore</span>
+            <span class="rbar-val">{{ metascore }} / 100</span>
+          </div>
+          <div class="rbar-track">
+            <div class="rbar-fill meta-color" data-w="{{ meta_w }}"></div>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+
+  <!-- ═══ 4. OVERVIEW ═══ -->
+  {% if overview and overview not in ('N/A','No overview available.') %}
+  <section class="gc overview-section">
+    <div class="ch">
+      <div class="chi"><i class="fa-solid fa-align-left"></i></div>
+      <p class="cht">Movie Overview</p>
+    </div>
+    <div class="cb">
+      <p class="overview-text">{{ overview }}</p>
+    </div>
+  </section>
+  {% endif %}
+
+
+  <!-- ═══ 5. CAST ═══ -->
+  <section class="gc cast-section">
+    <div class="ch">
+      <div class="chi"><i class="fa-solid fa-users"></i></div>
+      <p class="cht">Cast</p>
+      <span class="chs">
+        {% if cast %}{{ cast | length }} members{% else %}Enter movie name to unlock{% endif %}
+      </span>
+    </div>
+    <div class="cb">
+      {% if cast %}
+        <div class="cast-grid">
+          {% for actor in cast %}
+          <article class="cast-card">
+            <div class="cast-avatar">
+              {% if actor.profile_url and actor.profile_url != '' %}
+                <img src="{{ actor.profile_url }}" alt="{{ actor.name }}"
+                     onerror="this.parentElement.innerHTML='<span>🎭</span>'" />
+              {% else %}
+                <span>🎭</span>
+              {% endif %}
+            </div>
+            <p class="cast-name">{{ actor.name }}</p>
+            <p class="cast-role">{{ actor.character if actor.character else '' }}</p>
+          </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="cast-empty">
+          <i class="fa-solid fa-user-slash"></i>
+          <p><strong>Cast data not available</strong>Enter the movie name on the home page to fetch cast.</p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+
+  <!-- ═══ 6. DYNAMIC MOVIE ANALYTICS ═══ -->
+  <section class="charts-section">
+    <h2 class="sr-only">Movie Analytics Dashboard</h2>
+    <div class="charts-grid">
+
+      <!-- Recommendation Meter Card -->
+      <div class="chart-card rec-meter-section">
+        <div class="chart-head">
+          <p class="chart-title"><i class="fa-solid fa-compass"></i> Recommendation Meter</p>
+          <span class="chart-tag">AI Engine</span>
+        </div>
+        <div class="chart-body" style="flex-direction: column; gap: 1rem; align-items: stretch; justify-content: center; min-height: 230px;">
+          <div class="rec-meter-grid">
+            <div class="meter-wrap">
+              <div class="meter-ring">
+                <svg class="meter-svg">
+                  <defs>
+                    <linearGradient id="arcGradPos" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#2ecc71"/>
+                      <stop offset="100%" stop-color="#4ade80"/>
+                    </linearGradient>
+                    <linearGradient id="arcGradNeg" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#e50914"/>
+                      <stop offset="100%" stop-color="#ff6b6b"/>
+                    </linearGradient>
+                  </defs>
+                  <circle class="meter-bg" cx="55" cy="55" r="45"/>
+                  <circle class="meter-arc {% if css == 'positive' %}pos-arc{% else %}neg-arc{% endif %}" cx="55" cy="55" r="45" id="recDonutArc" data-val="{{ rec_score }}"/>
+                </svg>
+                <div class="meter-inner">
+                  <span class="meter-pct" id="recDonutPct">0%</span>
+                  <span class="meter-tiny">Score</span>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; justify-content:center; gap:0.25rem;">
+              <h3 style="font-size:1.05rem; font-weight:700; color:var(--sp); margin:0;">{{ rec_label }}</h3>
+              <p class="meter-desc" style="text-align:left; line-height:1.4; margin:0; color:#a0a0a0;">{{ rec_desc }}</p>
+            </div>
+          </div>
+          
+          <div class="review-strength" style="margin-top:0.4rem; border-top:1px solid rgba(255,255,255,0.05); padding-top:0.85rem;">
+            <div class="rs-row">
+              <span class="rs-label"><i class="fa-solid fa-bolt" style="color:var(--sp);"></i> Review Profile</span>
+              <div class="rs-bar">
+                <div class="rs-fill {% if conf_num >= 65 %}strong{% elif conf_num >= 45 %}moderate{% else %}weak{% endif %}" id="strengthBar" data-w="{{ conf_num }}"></div>
+              </div>
+              <span class="rs-pct">{{ conf_num | int }}%</span>
+            </div>
+            <p style="font-size:0.68rem; color:#606060; margin:0; text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">Confidence Context: {{ str_label }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Community Opinion Card -->
+      <div class="chart-card community-section">
+        <div class="chart-head">
+          <p class="chart-title"><i class="fa-solid fa-comments"></i> Community Opinion</p>
+          <span class="chart-tag">Audience Pulse</span>
+        </div>
+        <div class="chart-body" style="display:block; min-height: 230px;">
+          <div class="community-body">
+            <div class="community-stars">
+              <div class="star-display">
+                {% set full_stars = (base_rating) | int %}
+                {% for i in range(1, 6) %}
+                  {% if i <= (full_stars / 2) | int %}
+                    <span class="filled">★</span>
+                  {% else %}
+                    <span class="empty">★</span>
+                  {% endif %}
+                {% endfor %}
+              </div>
+              <div>
+                <p class="community-label">Global Metric Index</p>
+                <p class="community-sub">Synthesized from user data & external sentiment</p>
+              </div>
+            </div>
+
+            <div class="audience-bars">
+              <div class="abar-row">
+                <div class="abar-top">
+                  <span class="abar-label"><i class="fa-solid fa-face-smile" style="color:#4ade80"></i> Positive Opinion</span>
+                  <span class="abar-pct">{{ op_pos }}%</span>
+                </div>
+                <div class="abar-track">
+                  <div class="abar-fill abar-pos" data-w="{{ op_pos }}"></div>
+                </div>
+              </div>
+
+              <div class="abar-row">
+                <div class="abar-top">
+                  <span class="abar-label"><i class="fa-solid fa-face-meh" style="color:#f5be42"></i> Mixed Opinion</span>
+                  <span class="abar-pct">{{ op_mix }}%</span>
+                </div>
+                <div class="abar-track">
+                  <div class="abar-fill abar-neu" data-w="{{ op_mix }}"></div>
+                </div>
+              </div>
+
+              <div class="abar-row">
+                <div class="abar-top">
+                  <span class="abar-label"><i class="fa-solid fa-face-frown" style="color:#ff6b6b"></i> Negative Opinion</span>
+                  <span class="abar-pct">{{ op_neg }}%</span>
+                </div>
+                <div class="abar-track">
+                  <div class="abar-fill abar-neg" data-w="{{ op_neg }}"></div>
+                </div>
+              </div>
+            </div>
+
+            <p class="community-footer">Statistical snapshot optimized via real-time data</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ═══ 7. ORIGINAL REVIEW ═══ -->
+  <section class="gc review-section">
+    <div class="ch">
+      <div class="chi"><i class="fa-solid fa-quote-left"></i></div>
+      <p class="cht">Original Review</p>
+      <span class="chs">{{ review | length }} characters</span>
+    </div>
+    <div class="cb">
+      <p class="review-body truncated" id="reviewText">{{ review }}</p>
+      {% if review | length > 300 %}
+      <button class="read-more" id="readMoreBtn" aria-expanded="false">
+        <i class="fa-solid fa-chevron-down"></i> Read full review
+      </button>
+      {% endif %}
+    </div>
+  </section>
+
+
+  <!-- ═══ 8. ACTIONS ═══ -->
+  <nav class="actions-row">
+    <a href="{{ url_for('index') }}" class="btn btn-primary">
+      <i class="fa-solid fa-rotate-left"></i> Analyze Another
+    </a>
+    <a href="{{ url_for('index') }}#analyze" class="btn btn-ghost">
+      <i class="fa-solid fa-house"></i> Back to Home
+    </a>
+    <button class="btn btn-ghost" id="copyBtn">
+      <i class="fa-solid fa-copy"></i> Copy Result
+    </button>
+  </nav>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function(){
+  var page      = document.getElementById('resultPage');
+  var sentiment = page ? page.dataset.sentiment : 'negative';
+  var confNum   = parseFloat(page ? page.dataset.confidence : '0') || 0;
+  var confStr   = '{{ confidence }}';
+
+  /* ── Sentiment colours ── */
+  var isPos = sentiment === 'positive';
+  var root  = document.documentElement;
+  root.style.setProperty('--sp', isPos ? '#2ecc71' : '#e50914');
+  root.style.setProperty('--sg', isPos ? 'rgba(46,204,113,0.4)'  : 'rgba(229,9,20,0.4)');
+  root.style.setProperty('--st', isPos ? 'rgba(46,204,113,0.08)' : 'rgba(229,9,20,0.08)');
+  root.style.setProperty('--sb', isPos ? 'rgba(46,204,113,0.28)' : 'rgba(229,9,20,0.28)');
+
+  /* ── Confidence bar ── */
+  var bar = document.getElementById('confBar');
+  if(bar){ requestAnimationFrame(function(){ requestAnimationFrame(function(){ bar.style.width = confNum + '%'; }); }); }
+
+  /* ── Donut ── */
+  var donut = document.getElementById('donutChart');
+  var dlbl  = document.getElementById('donutLabel');
+  if(donut && dlbl){
+    dlbl.textContent = confNum.toFixed(0) + '%';
+    var st = null;
+    function animD(ts){ if(!st) st=ts; var p=Math.min((ts-st)/900,1); var v=confNum*(1-Math.pow(1-p,3)); donut.style.setProperty('--p',v.toFixed(1)); dlbl.textContent=v.toFixed(0)+'%'; if(p<1) requestAnimationFrame(animD); }
+    requestAnimationFrame(animD);
+  }
+
+  /* ── Rating bars ── */
+  setTimeout(function(){
+    document.querySelectorAll('.rbar-fill[data-w]').forEach(function(el){
+      el.style.width = el.dataset.w + '%';
+    });
+  }, 200);
+
+  /* ── Dynamic Analytics Animations ── */
+  setTimeout(function(){
+    // 1. Recommendation Ring Animation
+    var recArc = document.getElementById('recDonutArc');
+    var recPct = document.getElementById('recDonutPct');
+    if(recArc && recPct){
+      var scoreVal = parseFloat(recArc.dataset.val) || 0;
+      var radius = recArc.r.baseVal.value;
+      var circumference = 2 * Math.PI * radius;
+      
+      var startTimestamp = null;
+      function animRec(timestamp){
+        if (!startTimestamp) startTimestamp = timestamp;
+        var progress = Math.min((timestamp - startTimestamp) / 1200, 1);
+        var currentVal = scoreVal * (1 - Math.pow(1 - progress, 3)); // easeOutCubic
+        
+        var offset = circumference - (currentVal / 100) * circumference;
+        recArc.style.strokeDasharray = circumference;
+        recArc.style.strokeDashoffset = offset;
+        recPct.textContent = Math.round(currentVal) + '%';
+        
+        if (progress < 1) requestAnimationFrame(animRec);
+      }
+      requestAnimationFrame(animRec);
+    }
+
+    // 2. Review Strength Bar Animation
+    var strBar = document.getElementById('strengthBar');
+    if(strBar){
+      strBar.style.width = strBar.dataset.w + '%';
+    }
+
+    // 3. Community Opinion Audience Bars Animation
+    document.querySelectorAll('.abar-fill[data-w]').forEach(function(el){
+      el.style.width = el.dataset.w + '%';
+    });
+  }, 250);
+
+  /* ── Read more ── */
+  var rmb = document.getElementById('readMoreBtn');
+  var rtx = document.getElementById('reviewText');
+  if(rmb && rtx){
+    rmb.addEventListener('click', function(){
+      var exp = this.getAttribute('aria-expanded') === 'true';
+      rtx.classList.toggle('truncated', exp);
+      this.setAttribute('aria-expanded', String(!exp));
+      this.innerHTML = exp
+        ? '<i class="fa-solid fa-chevron-down"></i> Read full review'
+        : '<i class="fa-solid fa-chevron-up"></i>   Show less';
+    });
+  }
+
+  /* ── Copy ── */
+  var cpb = document.getElementById('copyBtn');
+  if(cpb){
+    cpb.addEventListener('click', function(){
+      var txt = '🎬 YentiFlix Result\n'
+              + '──────────────────\n'
+              + 'Verdict    : ' + (isPos ? '😊 POSITIVE' : '😡 NEGATIVE') + '\n'
+              + 'Confidence : ' + confStr + '\n'
+              + '──────────────────\n'
+              + 'yentiflix.app';
+      if(navigator.clipboard) navigator.clipboard.writeText(txt).then(function(){ showFb(cpb,'✓ Copied!'); });
+    });
+  }
+  function showFb(b,m){ var o=b.innerHTML; b.innerHTML='<i class="fa-solid fa-check"></i> '+m; b.disabled=true; setTimeout(function(){b.innerHTML=o;b.disabled=false;},2000); }
+
+  /* ── Scroll fade-in ── */
+  if('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){ entries.forEach(function(e){ if(e.isIntersecting){ e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; io.unobserve(e.target); } }); },{threshold:0.1});
+    document.querySelectorAll('.stile,.cast-card,.chart-card,.ir').forEach(function(el){ el.style.opacity='0'; el.style.transform='translateY(16px)'; el.style.transition='opacity 0.5s ease,transform 0.5s ease'; io.observe(el); });
+  }
+}());
+</script>
+{% endblock %}

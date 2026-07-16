@@ -1,0 +1,276 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="YentiFlix — AI Powered Movie Review Analyzer" />
+  <title>{% block title %}YentiFlix 🎬{% endblock %} — AI Movie Analytics</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+
+  <style>
+    :root {
+      --red        : #e50914;
+      --red-dark   : #b0060f;
+      --red-glow   : rgba(229,9,20,0.4);
+      --red-tint   : rgba(229,9,20,0.08);
+      --red-border : rgba(229,9,20,0.28);
+      --bg         : #080808;
+      --surface-1  : #0f0f0f;
+      --surface-2  : #161616;
+      --surface-3  : #1e1e1e;
+      --surface-4  : #272727;
+      --border-faint  : rgba(255,255,255,0.06);
+      --border-subtle : rgba(255,255,255,0.10);
+      --text-1     : #f2f2f2;
+      --text-2     : #a8a8a8;
+      --text-3     : #606060;
+      --green      : #2ecc71;
+      --amber      : #f0a500;
+      --blue       : #3b82f6;
+      --font       : 'Poppins', sans-serif;
+      --radius-sm  : 8px;
+      --radius-md  : 14px;
+      --radius-lg  : 20px;
+      --radius-xl  : 28px;
+      --ease       : cubic-bezier(0.4,0,0.2,1);
+      --duration   : 0.25s;
+      --transition : var(--duration) var(--ease);
+      --nav-h      : 66px;
+    }
+
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    html  { scroll-behavior:smooth; }
+    body  {
+      font-family   : var(--font);
+      background    : var(--bg);
+      color         : var(--text-1);
+      min-height    : 100vh;
+      display       : flex;
+      flex-direction: column;
+      background-image: radial-gradient(ellipse 90% 55% at 50% -5%, rgba(229,9,20,0.11) 0%, transparent 68%);
+    }
+    a   { color:inherit; text-decoration:none; }
+    ul  { list-style:none; }
+    button { cursor:pointer; font:inherit; }
+
+    ::-webkit-scrollbar             { width:5px; }
+    ::-webkit-scrollbar-track       { background:var(--bg); }
+    ::-webkit-scrollbar-thumb       { background:var(--red); border-radius:99px; }
+    ::selection { background:var(--red); color:#fff; }
+
+    /* ── Navbar ── */
+    .navbar {
+      position           : sticky;
+      top                : 0;
+      z-index            : 500;
+      height             : var(--nav-h);
+      background         : rgba(8,8,8,0.88);
+      backdrop-filter    : blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      border-bottom      : 1px solid var(--border-faint);
+      box-shadow         : 0 1px 0 var(--red-border), 0 8px 32px rgba(0,0,0,0.6);
+      display            : flex;
+      align-items        : center;
+      justify-content    : space-between;
+      padding            : 0 clamp(1.25rem,5vw,3rem);
+      gap                : 1rem;
+      transition         : box-shadow 0.3s ease, background 0.3s ease;
+    }
+    .navbar.scrolled { background:rgba(8,8,8,0.98); box-shadow:0 1px 0 var(--red-border),0 8px 48px rgba(0,0,0,0.85); }
+
+    .nav-logo {
+      font-size     : 1.55rem;
+      font-weight   : 700;
+      letter-spacing: 1.5px;
+      color         : var(--red);
+      text-shadow   : 0 0 18px var(--red-glow);
+      transition    : transform var(--transition), text-shadow var(--transition);
+      user-select   : none;
+      flex-shrink   : 0;
+      display       : flex;
+      align-items   : center;
+      gap           : 0.4rem;
+    }
+    .nav-logo:hover { transform:scale(1.04); text-shadow:0 0 28px var(--red-glow); }
+
+    .nav-links { display:flex; align-items:center; gap:0.15rem; }
+    .nav-links a {
+      display       : flex;
+      align-items   : center;
+      gap           : 0.4rem;
+      font-size     : 0.875rem;
+      font-weight   : 500;
+      color         : var(--text-2);
+      padding       : 0.42rem 0.85rem;
+      border-radius : var(--radius-sm);
+      border        : 1px solid transparent;
+      transition    : color var(--transition), background var(--transition), border-color var(--transition);
+      white-space   : nowrap;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color        : var(--text-1);
+      background   : var(--red-tint);
+      border-color : var(--red-border);
+    }
+
+    .nav-toggle {
+      display        : none;
+      flex-direction : column;
+      gap            : 5px;
+      padding        : 7px;
+      background     : transparent;
+      border         : 1px solid var(--border-subtle);
+      border-radius  : var(--radius-sm);
+      transition     : background var(--transition);
+    }
+    .nav-toggle:hover { background:var(--surface-3); }
+    .nav-toggle span  { display:block; width:20px; height:2px; background:var(--text-2); border-radius:99px; transition:transform var(--transition), opacity var(--transition); }
+    .nav-toggle[aria-expanded="true"] span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+    .nav-toggle[aria-expanded="true"] span:nth-child(2) { opacity:0; }
+    .nav-toggle[aria-expanded="true"] span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+
+    /* ── Flash messages ── */
+    .flash-zone { width:100%; max-width:1200px; margin:1.25rem auto 0; padding:0 clamp(1.25rem,5vw,3rem); display:flex; flex-direction:column; gap:0.6rem; }
+    .flash-msg  { display:flex; align-items:center; gap:0.75rem; padding:0.9rem 1.2rem; border-radius:12px; font-size:0.9rem; font-weight:500; border:1px solid transparent; animation:flashIn 0.35s ease both; }
+    @keyframes flashIn { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+    .flash-msg--success { background:rgba(46,204,113,0.1);  border-color:rgba(46,204,113,0.28); color:#5ddb90; }
+    .flash-msg--warning { background:rgba(240,165,0,0.1);   border-color:rgba(240,165,0,0.28);  color:#f5be42; }
+    .flash-msg--error   { background:rgba(229,9,20,0.1);    border-color:rgba(229,9,20,0.30);   color:#ff6b6b; }
+    .flash-msg--info    { background:rgba(0,194,255,0.1);   border-color:rgba(0,194,255,0.25);  color:#5bc8e8; }
+    .flash-msg__close   { margin-left:auto; background:transparent; border:none; color:inherit; opacity:0.5; font-size:0.95rem; padding:2px 4px; border-radius:4px; cursor:pointer; transition:opacity 0.2s; }
+    .flash-msg__close:hover { opacity:1; }
+
+    /* ── Main content ── */
+    .page-body { flex:1; width:100%; padding:2.5rem clamp(1.25rem,5vw,3rem) 4rem; }
+
+    /* ── Footer ── */
+    .footer { background:var(--surface-1); border-top:1px solid var(--border-faint); padding:2rem clamp(1.25rem,5vw,3rem); display:flex; flex-direction:column; align-items:center; gap:0.55rem; text-align:center; }
+    .footer__brand   { font-size:1.15rem; font-weight:700; letter-spacing:1.5px; color:var(--red); text-shadow:0 0 14px var(--red-glow); }
+    .footer__tagline { font-size:0.82rem; color:var(--text-2); font-weight:500; }
+    .footer__copy    { font-size:0.74rem; color:var(--text-3); }
+    .footer__copy a  { color:var(--text-2); border-bottom:1px solid transparent; transition:color var(--transition),border-color var(--transition); }
+    .footer__copy a:hover { color:var(--red); border-color:var(--red); }
+
+    /* ── Back to top ── */
+    #backToTop {
+      position:fixed; bottom:2rem; right:1.75rem; z-index:900;
+      width:44px; height:44px; border-radius:50%;
+      background:var(--red); color:#fff; border:none; font-size:1rem;
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 4px 20px rgba(229,9,20,0.45);
+      opacity:0; transform:translateY(12px); pointer-events:none;
+      transition:opacity 0.3s,transform 0.3s,background 0.2s;
+      cursor:pointer;
+    }
+    #backToTop.visible { opacity:1; transform:translateY(0); pointer-events:auto; }
+    #backToTop:hover   { background:var(--red-dark); transform:translateY(-3px); }
+
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+    @media (max-width: 640px) {
+      .nav-toggle { display:flex; }
+      .nav-links  { display:none; position:absolute; top:var(--nav-h); left:0; right:0; flex-direction:column; align-items:stretch; background:rgba(8,8,8,0.98); backdrop-filter:blur(20px); border-bottom:1px solid var(--border-faint); padding:0.75rem 1.25rem 1.1rem; gap:0.2rem; }
+      .nav-links.open { display:flex; }
+      .nav-links a    { padding:0.7rem 0.9rem; }
+    }
+  </style>
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<header>
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <a href="{{ url_for('index') }}" class="nav-logo">
+      <i class="fa-solid fa-film" aria-hidden="true"></i> YentiFlix
+    </a>
+
+    <button class="nav-toggle" id="navToggle" aria-controls="navLinks" aria-expanded="false" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <ul class="nav-links" id="navLinks" role="list">
+      <li><a href="{{ url_for('index') }}"          class="{{ 'active' if request.endpoint == 'index' else '' }}"><i class="fa-solid fa-house"></i> Home</a></li>
+      <li><a href="{{ url_for('index') }}#analyze"  class="{{ 'active' if request.endpoint == 'predict' else '' }}"><i class="fa-solid fa-magnifying-glass-chart"></i> Analyze</a></li>
+      
+  </nav>
+</header>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-zone" role="alert" aria-live="polite">
+      {% for category, message in messages %}
+        <div class="flash-msg flash-msg--{{ category }}">
+          {% if category == 'success' %}<i class="fa-solid fa-circle-check"></i>
+          {% elif category == 'warning' %}<i class="fa-solid fa-triangle-exclamation"></i>
+          {% elif category == 'error' %}<i class="fa-solid fa-circle-xmark"></i>
+          {% else %}<i class="fa-solid fa-circle-info"></i>{% endif %}
+          <span>{{ message }}</span>
+          <button class="flash-msg__close" onclick="this.closest('.flash-msg').remove()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<main class="page-body" id="main-content">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer" role="contentinfo">
+  <p class="footer__brand"><i class="fa-solid fa-film"></i> YentiFlix</p>
+  <p class="footer__tagline">
+    <i class="fa-solid fa-microchip" style="color:var(--red)"></i>
+    AI Powered Movie Review Analytics Platform &nbsp;·&nbsp; Developed by 
+    <i class="fa-solid fa-heart" style="color:var(--red);margin:0 0.2rem"></i> Yash
+  </p>
+  <p class="footer__copy">
+    &copy; {{ year }} YentiFlix &nbsp;·&nbsp;
+    &nbsp;  Powered by Python, Flask &amp; Machine Learning
+  </p>
+</footer>
+
+<button id="backToTop" aria-label="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
+
+<script>
+(function(){
+  // Navbar toggle
+  var t=document.getElementById('navToggle'), n=document.getElementById('navLinks');
+  if(t&&n){
+    t.addEventListener('click',function(){var o=n.classList.toggle('open');t.setAttribute('aria-expanded',String(o));});
+    n.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){n.classList.remove('open');t.setAttribute('aria-expanded','false');});});
+    document.addEventListener('click',function(e){if(!t.contains(e.target)&&!n.contains(e.target)){n.classList.remove('open');t.setAttribute('aria-expanded','false');}});
+    document.addEventListener('keydown',function(e){if(e.key==='Escape'){n.classList.remove('open');t.setAttribute('aria-expanded','false');}});
+  }
+  // Navbar scroll shadow
+  var nav=document.querySelector('.navbar');
+  window.addEventListener('scroll',function(){nav&&nav.classList.toggle('scrolled',window.pageYOffset>10);},{passive:true});
+  // Flash auto dismiss
+  document.querySelectorAll('.flash-msg').forEach(function(el){
+    setTimeout(function(){el.style.transition='opacity 0.45s,transform 0.45s,max-height 0.45s';el.style.opacity='0';el.style.transform='translateY(-8px)';el.style.maxHeight='0';el.style.padding='0';setTimeout(function(){el.remove();},450);},5000);
+  });
+  // Back to top
+  var btt=document.getElementById('backToTop');
+  window.addEventListener('scroll',function(){btt&&btt.classList.toggle('visible',window.pageYOffset>300);},{passive:true});
+  if(btt)btt.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+  // Smooth scroll for hash links
+  document.querySelectorAll('a[href^="#"]').forEach(function(a){
+    a.addEventListener('click',function(e){
+      var t=document.querySelector(this.getAttribute('href'));
+      if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'});}
+    });
+  });
+}());
+</script>
+
+<script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+{% block scripts %}{% endblock %}
+
+</body>
+</html>

@@ -16,7 +16,6 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/Yash-Verse09/YentiFlix?style=social)](https://github.com/Yash-Verse09/YentiFlix/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/Yash-Verse09/YentiFlix?style=social)](https://github.com/Yash-Verse09/YentiFlix/network/members)
-[![GitHub Issues](https://img.shields.io/github/issues/Yash-Verse09/YentiFlix)](https://github.com/Yash-Verse09/YentiFlix/issues)
 
 ---
 

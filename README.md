@@ -21,8 +21,8 @@
 
 *A full-stack Machine Learning web application that analyzes movie reviews using Natural Language Processing, fetches real-time movie data from TMDb & OMDb APIs, and presents a premium Netflix-inspired dashboard.*
 
-[**Live Demo**](#) · [**Report Bug**](https://github.com/Yash-Verse09/YentiFlix/issues) · [**Request Feature**](https://github.com/Yash-Verse09/YentiFlix/issues)
-
+[**Live Demo**](#) · 🚨 [Report Bug](https://github.com/Yash-Verse09/YentiFlix-Movie-Review-Analyzer/issues) •
+💡 [Request Feature](https://github.com/Yash-Verse09/YentiFlix-Movie-Review-Analyzer/issues)
 </div>
 
 ---

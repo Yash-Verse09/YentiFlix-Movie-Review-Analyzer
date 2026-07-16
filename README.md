@@ -27,10 +27,7 @@
 YentiFlix is a Machine Learning based web application that analyzes movie reviews and predicts the sentiment of the review as Positive or Negative.
 
 The application is deployed on **Railway** and can be accessed online:
-
-🌐 **Live Application:**  
-https://fulfilling-commitment-production-bad8.up.railway.app/
-Explore the application to test real-time movie review sentiment analysis.
+Click on the **🚀 Live Demo** button above to access the application and try real-time movie review analysis.
 
 🚨 [Report Bug](https://github.com/Yash-Verse09/YentiFlix-Movie-Review-Analyzer/issues) •
 💡 [Request Feature](https://github.com/Yash-Verse09/YentiFlix-Movie-Review-Analyzer/issues)

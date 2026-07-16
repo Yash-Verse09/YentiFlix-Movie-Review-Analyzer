@@ -22,12 +22,12 @@
 *A full-stack Machine Learning web application that analyzes movie reviews using Natural Language Processing, fetches real-time movie data from TMDb & OMDb APIs, and presents a premium Netflix-inspired dashboard.*
 
 ## 🚀 [Live Demo](https://fulfilling-commitment-production-bad8.up.railway.app/)
+
 🎬 **YentiFlix - Movie Review Analyzer**
 
-YentiFlix is a Machine Learning based web application that analyzes movie reviews and predicts the sentiment of the review as Positive or Negative.
+YentiFlix is a Machine Learning based web application that analyzes movie reviews and predicts sentiment as **Positive** or **Negative**.
 
-The application is deployed on **Railway** and can be accessed online:
-Click on the **🚀 Live Demo** button above to access the application and try real-time movie review analysis.
+The application is successfully deployed on **Railway** and allows users to perform real-time movie review sentiment analysis using a trained Machine Learning model.
 
 🚨 [Report Bug](https://github.com/Yash-Verse09/YentiFlix-Movie-Review-Analyzer/issues) •
 💡 [Request Feature](https://github.com/Yash-Verse09/YentiFlix-Movie-Review-Analyzer/issues)

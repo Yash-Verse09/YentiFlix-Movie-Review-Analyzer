@@ -1,58 +1,9 @@
 flask==3.0.3
+gunicorn==22.0.0
 nltk==3.8.1
 scikit-learn==1.5.1
 matplotlib==3.8.4
 pandas==2.2.2
 numpy==1.26.4
-joblib==1.4.2
-
-sqlite3
-
-
-TMDB_API_KEY = os.getenv("57a0d7db7351a1ca01041c569738bd73", "")
-OMDB_API_KEY = os.getenv("68a405fb", "")
-
-I have completed my YentiFlix project setup.
-Current structure:
-YentiFlix/
-│
-├── data/
-│   ├── raw/
-│   │   └── reviews.csv
-│   │
-│   └── processed/
-│       └── cleaned_reviews.csv
-│
-├── models/
-│
-├── src/
-│   ├── preprocess.py
-│   ├── train_model.py
-│   ├── predict.py
-│   ├── visualize.py
-│   └── utils.py
-│
-├── static/
-│   ├── css/
-│   │   └── style.css
-│   │
-│   ├── js/
-│   │   └── script.js
-│   │
-│   ├── images/
-│   │
-│   └── charts/
-│
-├── templates/
-│   ├── base.html
-│   ├── index.html
-│   └── result.html
-│
-├── notebooks/
-│   └── experimentation.ipynb
-│
-├── app.py
-├── requirements.txt
-├── README.md
-├── .gitignore
-└── LICENSE   
+requests
+python-dotenv

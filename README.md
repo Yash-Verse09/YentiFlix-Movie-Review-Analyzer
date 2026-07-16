@@ -21,10 +21,7 @@
 
 *A full-stack Machine Learning web application that analyzes movie reviews using Natural Language Processing, fetches real-time movie data from TMDb & OMDb APIs, and presents a premium Netflix-inspired dashboard.*
 
-[**🚀 Live Demo**]  
-🎬 YentiFlix - Movie Review Analyzer
-Live Application:
-https://fulfilling-commitment-production-bad8.up.railway.app/
+## 🚀 [Live Demo](https://fulfilling-commitment-production-bad8.up.railway.app/)
 🚨 [Report Bug](https://github.com/Yash-Verse09/YentiFlix-Movie-Review-Analyzer/issues) •
 💡 [Request Feature](https://github.com/Yash-Verse09/YentiFlix-Movie-Review-Analyzer/issues)
 </div>

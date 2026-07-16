@@ -16,14 +16,13 @@
 
 [![GitHub Stars](https://img.shields.io/github/stars/Yash-Verse09/YentiFlix?style=social)](https://github.com/Yash-Verse09/YentiFlix/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/Yash-Verse09/YentiFlix?style=social)](https://github.com/Yash-Verse09/YentiFlix/network/members)
-[![GitHub Issues](https://img.shields.io/github/issues/Yash-Verse09/YentiFlix)](https://github.com/Yash-Verse09/YentiFlix/issues)
 
 ---
 
 *A full-stack Machine Learning web application that analyzes movie reviews using Natural Language Processing, fetches real-time movie data from TMDb & OMDb APIs, and presents a premium Netflix-inspired dashboard.*
 
-[**Live Demo**](#) · [**Report Bug**](https://github.com/Yash-Verse09/YentiFlix/issues) · [**Request Feature**](https://github.com/Yash-Verse09/YentiFlix/issues)
-
+[**Live Demo**](#) · 🚨 [Report Bug](https://github.com/Yash-Verse09/YentiFlix-Movie-Review-Analyzer/issues) •
+💡 [Request Feature](https://github.com/Yash-Verse09/YentiFlix-Movie-Review-Analyzer/issues)
 </div>
 
 ---
@@ -33,35 +32,35 @@
 ### 🏠 Homepage
 The landing page where users enter a movie name, rating, and review.
 
-![Homepage](Screenshots/homepage.png)
+![Homepage](Screenshot/homepage.png)
 
 ---
 
 ### ✍️ Movie Review Input
 Review submission form with movie title, user rating, and review text.
 
-![Movie Review](Screenshots/movie_review.png)
+![Movie Review](Screenshot/movie_review.png)
 
 ---
 
 ### 🎬 Movie Details
 Displays movie poster, release date, genres, cast, runtime, director, trailer, and other metadata.
 
-![Movie Details](Screenshots/movie_details.png)
+![Movie Details](Screenshot/movie_details.png)
 
 ---
 
 ### 😊 Sentiment Analysis Result
 Shows the predicted sentiment, confidence score, and review summary.
 
-![Sentiment Result](Screenshots/sentiment.png)
+![Sentiment Result](Screenshot/sentiment.png)
 
 ---
 
 ### 📊 Analytics Charts
 Visualizes sentiment distribution and positive vs negative review ratio.
 
-![Charts](Screenshots/charts.png)
+![Charts](Screenshot/charts.png)
 ---
 
 ## 📋 Table of Contents
@@ -86,7 +85,7 @@ Visualizes sentiment distribution and positive vs negative review ratio.
 
 > **YentiFlix** is a production-ready AI-powered web application built with **Flask** and **Machine Learning** that predicts the sentiment of movie reviews (Positive / Negative) and enriches results with real movie data fetched from **TMDb** and **OMDb** APIs — all presented inside a premium, responsive **Netflix-inspired dashboard**.
 
-This project demonstrates the complete ML pipeline from raw text preprocessing to a deployed web application, making it a strong portfolio project that showcases skills in **NLP**, **Machine Learning**, **REST API integration**, **Flask development**, and **modern frontend design**.
+This project demonstrates the complete ML pipeline from raw text preprocessing to a deployed web application, making it a strong portfolio project that showcases skills in **NLP**, **Machine Learning**, **API integration**, **Flask development**, and **modern frontend design**.
 
 ---
 
